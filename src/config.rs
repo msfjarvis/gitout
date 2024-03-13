@@ -68,7 +68,7 @@ pub struct Git {
 	pub repos: Table,
 }
 
-pub fn parse_config(s: &str) -> Result<Config, Error> {
+pub fn parse(s: &str) -> Result<Config, Error> {
 	toml::from_str(s)
 }
 
@@ -79,10 +79,10 @@ mod test {
 
 	#[test]
 	fn empty() {
-		let actual = parse_config(
-			r#"
+		let actual = parse(
+			r"
 			version = 0
-			"#,
+			",
 		)
 		.unwrap();
 		let expected = Config {
@@ -90,12 +90,12 @@ mod test {
 			github: None,
 			git: None,
 		};
-		assert_eq!(actual, expected)
+		assert_eq!(actual, expected);
 	}
 
 	#[test]
 	fn full() {
-		let actual = parse_config(
+		let actual = parse(
 			r#"
 			version = 0
 
@@ -146,6 +146,6 @@ mod test {
 			}),
 			git: Some(Git { repos }),
 		};
-		assert_eq!(actual, expected)
+		assert_eq!(actual, expected);
 	}
 }

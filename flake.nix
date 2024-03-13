@@ -77,8 +77,7 @@
         inherit gitout;
         # There are some deprecated dependencies that need to be replaced
         #inherit gitout-audit;
-        # Clippy hates this old code
-        #inherit gitout-clippy;
+        inherit gitout-clippy;
         inherit gitout-fmt;
         inherit gitout-nextest;
       };
