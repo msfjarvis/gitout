@@ -25,6 +25,6 @@ pub struct Args {
 	pub dry_run: bool,
 }
 
-pub fn parse_args() -> Args {
+pub fn parse() -> Args {
 	Args::from_args()
 }

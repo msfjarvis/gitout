@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::Path;
 use std::{fs, io};
 
 use git2::{Cred, FetchOptions, RemoteCallbacks, Repository};
@@ -10,8 +10,9 @@ mod args;
 mod config;
 mod github;
 
+#[allow(clippy::too_many_lines)]
 fn main() {
-	let args = args::parse_args();
+	let args = args::parse();
 	if args.verbose {
 		dbg!(&args);
 	}
@@ -25,13 +26,14 @@ fn main() {
 
 	if !dry_run {
 		let destination_metadata = fs::metadata(&destination).unwrap();
-		if !destination_metadata.is_dir() {
-			panic!("Destination must exist and must be a directory")
-		}
+		assert!(
+			destination_metadata.is_dir(),
+			"Destination must exist and must be a directory"
+		);
 	}
 
 	let config = fs::read_to_string(config).unwrap();
-	let config = config::parse_config(&config).unwrap();
+	let config = config::parse(&config).unwrap();
 	if verbose {
 		dbg!(&config);
 	}
@@ -77,7 +79,7 @@ fn main() {
 				);
 				io::stdout().flush().unwrap();
 
-				github::archive_repo(&client, &archive_dir, &repo, &github.token);
+				github::archive_repo(&client, &archive_dir, repo, &github.token);
 
 				println!("Done");
 			}
@@ -97,7 +99,7 @@ fn main() {
 				let url = format!("https://gist.github.com/{0}.git", &name);
 				let username = &github.user;
 				let password = &github.token;
-				clone_or_fetch_bare(&gists_dir, &name, &url, dry_run, Some((username, password)));
+				clone_or_fetch_bare(&gists_dir, name, &url, dry_run, Some((username, password)));
 			}
 			println!("\n");
 		}
@@ -116,7 +118,7 @@ fn main() {
 			clone_repos.extend(user_repos.watched);
 		}
 		if !github.clone.ignored.is_empty() {
-			clone_repos.retain(|r| !github.clone.ignored.contains(r))
+			clone_repos.retain(|r| !github.clone.ignored.contains(r));
 		}
 		let clone_repos: HashSet<String> = clone_repos.into_iter().collect();
 
@@ -131,7 +133,7 @@ fn main() {
 			let url = format!("https://github.com/{0}.git", &repo);
 			let username = &github.user;
 			let password = &github.token;
-			clone_or_fetch_bare(&clone_dir, &repo, &url, dry_run, Some((username, password)));
+			clone_or_fetch_bare(&clone_dir, repo, &url, dry_run, Some((username, password)));
 		}
 		println!("\n");
 	}
@@ -149,7 +151,7 @@ fn main() {
 			io::stdout().flush().unwrap();
 
 			let url = url.as_str().unwrap();
-			clone_or_fetch_bare(&git_dir, &path, url, dry_run, None)
+			clone_or_fetch_bare(&git_dir, path, url, dry_run, None);
 		}
 		println!("\n");
 	}
@@ -158,7 +160,7 @@ fn main() {
 }
 
 fn clone_or_fetch_bare(
-	dir: &PathBuf,
+	dir: &Path,
 	repository: &str,
 	url: &str,
 	dry_run: bool,
@@ -188,7 +190,7 @@ fn clone_or_fetch_bare(
 		fo.remote_callbacks(callbacks);
 
 		if !dry_run {
-			let mut repo_dir = dir.clone();
+			let mut repo_dir = dir.to_path_buf();
 			repo_dir.push(repository);
 
 			let repo_exists = fs::metadata(&repo_dir).map_or_else(|_| false, |m| m.is_dir());
@@ -208,6 +210,6 @@ fn clone_or_fetch_bare(
 	}
 
 	if updated {
-		println!("Done")
+		println!("Done");
 	}
 }

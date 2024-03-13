@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::copy;
-use std::path::PathBuf;
+use std::path::Path;
 use std::time::Duration;
 use std::{fs, thread};
 
@@ -98,7 +98,7 @@ pub struct Repositories {
 	pub gists: Vec<String>,
 }
 
-pub fn archive_repo(client: &Client, dir: &PathBuf, repository: &str, token: &str) {
+pub fn archive_repo(client: &Client, dir: &Path, repository: &str, token: &str) {
 	let migration_request = MigrationRequest {
 		repositories: vec![repository.to_owned()],
 	};
@@ -121,16 +121,18 @@ pub fn archive_repo(client: &Client, dir: &PathBuf, repository: &str, token: &st
 		if migration_state == "exported" {
 			break;
 		}
-		if migration_state == "failed" {
-			panic!("Creating migration for {} failed", &repository);
-		}
+		assert!(
+			migration_state != "failed",
+			"Creating migration for {} failed",
+			&repository
+		);
 
 		thread::sleep(wait);
 		if wait < Duration::from_secs(64) {
-			wait *= 2
+			wait *= 2;
 		}
 
-		let status_url = format!("https://api.github.com/user/migrations/{0}", migration_id);
+		let status_url = format!("https://api.github.com/user/migrations/{migration_id}");
 		let status_response: MigrationResponse = client
 			.get(&status_url)
 			.bearer_auth(token)
@@ -149,9 +151,9 @@ pub fn archive_repo(client: &Client, dir: &PathBuf, repository: &str, token: &st
 	// 2. Delete the old archive repo.zip.
 	// 3. Rename the new archive from repo.zip.new to repo.zip.
 
-	let mut archive_old = dir.clone();
+	let mut archive_old = dir.to_path_buf();
 	archive_old.push(format!("{0}.zip", &repository));
-	let mut archive_new = dir.clone();
+	let mut archive_new = dir.to_path_buf();
 	archive_new.push(format!("{0}.zip.new", &repository));
 
 	let mut archive_dir = archive_old.clone();
@@ -168,12 +170,9 @@ pub fn archive_repo(client: &Client, dir: &PathBuf, repository: &str, token: &st
 	}
 
 	// Step 1:
-	let download_url = format!(
-		"https://api.github.com/user/migrations/{0}/archive",
-		migration_id
-	);
+	let download_url = format!("https://api.github.com/user/migrations/{migration_id}/archive");
 	let mut download_request = client
-		.get(&download_url)
+		.get(download_url)
 		.bearer_auth(token)
 		.header(ACCEPT, "application/vnd.github.wyandotte-preview+json")
 		.send()
