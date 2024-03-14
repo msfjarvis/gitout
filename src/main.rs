@@ -4,6 +4,7 @@ use std::path::Path;
 use std::{fs, io};
 
 use git2::{Cred, FetchOptions, RemoteCallbacks, Repository};
+use gix::{progress, Url};
 use reqwest::blocking::Client;
 
 mod args;
@@ -157,6 +158,23 @@ fn main() {
 	}
 
 	println!("Done!");
+}
+
+#[allow(unused)]
+fn clone_or_fetch_bare_gix(dir: &Path, repository: &str, url: &str) -> anyhow::Result<()> {
+	let prepare = gix::clone::PrepareFetch::new(
+		url,
+		dir,
+		gix::create::Kind::Bare,
+		gix::create::Options::default(),
+		gix::open::Options::default(),
+	)?;
+
+	let (mut checkout, fetch_outcome) = prepare.fetch_then_checkout(gix::DynNestedProgress, &gix::interrupt::IS_INTERRUPTED)?;
+
+	let repo = checkout.persist();
+
+	Ok(())
 }
 
 fn clone_or_fetch_bare(
