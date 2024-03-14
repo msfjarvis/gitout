@@ -10,6 +10,7 @@ license = "MIT"
 keywords = ["git", "github", "backup"]
 categories = ["command-line-utilities"]
 exclude = [".github/**"]
+publish = false
 
 [dependencies]
 git2 = "0.15"
