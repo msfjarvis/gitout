@@ -52,8 +52,8 @@
           src = craneLib.path ./.;
           inherit filter;
         };
-        buildInputs = with pkgs; [(lib.getDev openssl)];
-        nativeBuildInputs = with pkgs; [pkg-config];
+        buildInputs = [];
+        nativeBuildInputs = with pkgs;[perl pkg-config];
         cargoClippyExtraArgs = "--all-targets -- --deny warnings";
       };
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {doCheck = false;});
@@ -88,11 +88,6 @@
 
       devShells.default = pkgs.devshell.mkShell {
         bash = {interactive = "";};
-        imports = ["${pkgs.devshell.extraModulesDir}/language/c.nix"];
-        language.c = {
-          includes = with pkgs; [(lib.getDev openssl)];
-          compiler = pkgs.stdenv.cc;
-        };
 
         env = [
           {
@@ -104,6 +99,8 @@
         packages = with pkgs; [
           cargo-nextest
           cargo-release
+          gnumake
+          perl
           rustStable
           stdenv.cc
         ];
