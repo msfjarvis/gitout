@@ -42,7 +42,7 @@
 
         rustStable = (import fenix { inherit pkgs; }).fromToolchainFile {
           file = ./rust-toolchain.toml;
-          sha256 = "sha256-s1RPtyvDGJaX/BisLT+ifVfuhDT1nZkZ1NcK8sbwELM=";
+          sha256 = "sha256-lMLAupxng4Fd9F1oDw8gx+qA0RuF7ou7xhNU8wgs0PU=";
         };
         graphqlFilter = path: builtins.match ".*graphql$" path != null;
         filter = path: type: (graphqlFilter path) || (craneLib.filterCargoSources path type);
