@@ -44,15 +44,18 @@
           file = ./rust-toolchain.toml;
           sha256 = "sha256-lMLAupxng4Fd9F1oDw8gx+qA0RuF7ou7xhNU8wgs0PU=";
         };
-        graphqlFilter = path: builtins.match ".*graphql$" path != null;
-        filter = path: type: (graphqlFilter path) || (craneLib.filterCargoSources path type);
 
         craneLib = (crane.mkLib pkgs).overrideToolchain rustStable;
         commonArgs = {
-          src = pkgs.lib.cleanSourceWith {
-            src = craneLib.path ./.;
-            inherit filter;
-          };
+          src =
+            with pkgs.lib.fileset;
+            toSource {
+              root = ./.;
+              fileset = unions [
+                (fileFilter (file: file.hasExt "graphql") ./.)
+                (craneLib.fileset.commonCargoSources ./.)
+              ];
+            };
           buildInputs = [ ];
           nativeBuildInputs = with pkgs; [
             perl
