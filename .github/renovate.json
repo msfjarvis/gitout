@@ -4,5 +4,12 @@
     "config:recommended",
     "github>msfjarvis/shared-workflows//renovate/rust",
     "github>msfjarvis/shared-workflows//renovate/automerge"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["rust-toolchain", "dockerfile"],
+      "matchDepNames": ["rust"],
+      "enabled": false
+    }
   ]
 }
